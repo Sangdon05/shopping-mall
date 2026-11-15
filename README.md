@@ -177,3 +177,19 @@ exception
 end;
 $$;
 ```
+
+# 시연 영상
+
+## 판매자 시연
+
+
+https://github.com/user-attachments/assets/033da336-6107-4564-ad53-9735af40c822
+
+
+
+## 회원 시연
+
+
+https://github.com/user-attachments/assets/3da0b715-202f-4ee8-afeb-e0c19a321d41
+
+
