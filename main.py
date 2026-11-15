@@ -181,8 +181,8 @@ if __name__ == "__main__":
         if not select_number.isdigit():
             print("숫자 입력해 주세요.")
             continue
-
-        match int(select_number):
+        select_number = int(select_number)
+        match select_number:
             case 1 | 2:
                 step = 1
                 data = {}
