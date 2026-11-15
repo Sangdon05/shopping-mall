@@ -3,6 +3,7 @@ from typing import Literal
 
 from postgrest.exceptions import APIError
 from supabase import AuthApiError, AuthInvalidCredentialsError
+from supabase_auth.types import User
 
 from ..utils.time import get_timestamptz
 from .base_service import BaseService
@@ -25,7 +26,10 @@ class AccountInfo:
 
 class UserService(BaseService):
     # 회원가입
-    def sign_up(self, account: Account):
+    def sign_up(self, account: Account, confirm_password):
+        if account.password != confirm_password:
+            raise ValueError("비밀번호가 동일하지 않습니다. 다시 확인해 주세요.")
+
         try:
             response = self.client.auth.sign_up(
                 {
@@ -57,11 +61,11 @@ class UserService(BaseService):
                 self.get_user_details_table()
                 .select("id")
                 .eq("id", user.id)
-                .limit(1)
+                .maybe_single()
                 .execute()
             )
 
-            if len(response.data) != 0:
+            if response and response.data:
                 # update info
                 values = {k: v for k, v in asdict(info).items() if v != None}
                 values["modified_at"] = get_timestamptz()
@@ -96,27 +100,27 @@ class UserService(BaseService):
                     ) from e
 
     # 회원 상세 정보 가져오기
-    def get_details(self) -> dict[str, any]:
+    def get_details(self) -> dict:
         user = self.get_user_info()
         response = (
             self.get_user_details_table()
             .select("*")
             .eq("id", user.id)
             .is_("deleted_at", "null")
-            .limit(1)
             .maybe_single()
             .execute()
         )
 
-        if response and response.data:
-            info = dict(response.data)
+        if response and response.data and isinstance(response.data, dict):
+            info = response.data
+            del info["id"]
             info["email"] = user.email
             return info
         else:
             return {"email": user.email}
 
     # 로그인
-    def login(self, account: Account):
+    def login(self, account: Account) -> User:
         try:
             response = self.get_auth().sign_in_with_password(
                 {"email": account.email, "password": account.password}

@@ -21,7 +21,7 @@ class ProductService(BaseService):
         product_id: str | None = None,
         offset: int = 0,
         limit: int = 20,
-    ):
+    ) -> list:
         try:
             query = self.get_products_table().select("*")
 
@@ -44,7 +44,10 @@ class ProductService(BaseService):
                 .execute()
             )
 
-            return response.data
+            if response and response.data and isinstance(response.data, list):
+                return response.data
+
+            return []
         except APIError as e:
             match e.code:
                 case "23502":

@@ -1,13 +1,14 @@
 from postgrest import SyncRequestBuilder
 from supabase import Client
 from supabase._sync.auth_client import SyncSupabaseAuthClient
+from supabase_auth import User
 
 
 class BaseService:
     def __init__(self, client: Client):
         self.client = client
 
-    def get_user_info(self):
+    def get_user_info(self) -> User:
         response = self.get_auth().get_user()
         if not response:
             raise PermissionError("로그인 필수 기능입니다. 로그인이 필요합니다.")
@@ -35,12 +36,12 @@ class BaseService:
             self.get_user_details_table()
             .select("type")
             .eq("id", user.id)
-            .limit(1)
             .maybe_single()
             .execute()
         )
 
-        if response and response.data:
-            return response.data["type"]
+        if response and response.data and isinstance(response.data, dict):
+            info = response.data
+            return str(info["type"])
         else:
             raise ValueError("회원 정보가 없습니다.")
